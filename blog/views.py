@@ -2,6 +2,17 @@ from django.shortcuts import get_object_or_404, render
 from .models import Post
 from django.http import Http404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic import ListView
+
+"""
+Definiendo una class ListView que sirve parar reemplazar funciones y hace mas ligero el codigo
+Va a reemplazar la funcion post_list
+"""
+class PostListView(ListView):
+    queryset = Post.published.all()
+    content_object_name = 'posts'
+    paginate_by = 5
+    template_name = 'blog/post/list.html'
 
 def post_list(request):
     post_list = Post.published.all()
@@ -13,7 +24,10 @@ def post_list(request):
         posts = paginator.page(page_number)
     except EmptyPage:
         # If page_number is out of range deliver last page of results
-        post = paginator.page(paginator.num_pages)
+        posts = paginator.page(paginator.num_pages)
+    # If page_number is a letter
+    except PageNotAnInteger:
+        posts = paginator.page(1)
     
     return render(request,'blog/post/list.html', {'posts':posts})
 
