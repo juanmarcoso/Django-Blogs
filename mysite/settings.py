@@ -123,8 +123,16 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'your_account@gmail.com'
-EMAIL_HOST_PASSWORD = ''
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+# Email server configuration
+"""
+send_mail(subject, message, from_email, recipient_list, fail_silently=False, auth_user=None, auth_password=None, connection=None, html_message=None)
+"""
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#EMAIL_HOST = 'localhost'
+#EMAIL_HOST_USER = ''
+#EMAIL_HOST_PASSWORD = ''
+#EMAIL_PORT = 587
+#EMAIL_PORT = 25
+#EMAIL_USE_SSL = True
+#EMAIL_USE_TLS = False
+#DEFAULT_FROM_EMAIL = 'juanmadev69@gmail.com'
