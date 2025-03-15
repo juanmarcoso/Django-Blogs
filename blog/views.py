@@ -6,19 +6,25 @@ from django.views.generic import ListView
 from .forms import EmailPostForm, CommentForm
 from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
+from taggit.models import Tag
+from django.db.models import Count, Min, Max, Avg
 
 """
 Defining a PostListView class that can be used to replace functions and makes the code lighter.
 It will replace the post_list function.
 """
-class PostListView(ListView):
-    queryset = Post.published.all()
-    content_object_name = 'posts'
-    paginate_by = 5
-    template_name = 'blog/post/list.html'
+# class PostListView(ListView):
+#     queryset = Post.published.all()
+#     content_object_name = 'posts'
+#     paginate_by = 5
+#     template_name = 'blog/post/list.html'
 
-def post_list(request):
+def post_list(request, tag_slug=None): # if tag_slug=jazz
     post_list = Post.published.all()
+    tag = None
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug=tag_slug) # slug=jazz
+        post_list = post_list.filter(tags__in=[tag]) # filter by jazz
     #Vamos a crear un paginador
     # Pagination with 3 posts per page
     paginator = Paginator(post_list, 3)
@@ -32,7 +38,7 @@ def post_list(request):
     except PageNotAnInteger:
         posts = paginator.page(1)
     
-    return render(request,'blog/post/list.html', {'posts':posts})
+    return render(request,'blog/post/list.html', {'posts':posts, 'tag':tag})
 
 def post_detail(request, year, month, day, post):
     """
@@ -49,9 +55,24 @@ def post_detail(request, year, month, day, post):
                              publish__year = year,
                              publish__month = month,
                              publish__day = day)
+    
+    # List for active comments for this post
+    comments = post.comments.filter(active=True)
+    # Form for user to make a comment
+    form = CommentForm()
+    # List of similar posts
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.published.filter(tags__in=post_tags_ids) \
+        .exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')) \
+        .order_by('-same_tags', '-publish')[:4]
+        
     return render(request, 
                   'blog/post/detail.html', 
-                  {'post':post})
+                  {'post':post,
+                   'comments': comments,
+                   'form': form,
+                   'similar_posts':similar_posts})
     
 def post_share(request, post_id):
     # Retrieve post by id
@@ -68,9 +89,7 @@ def post_share(request, post_id):
             # Process the form data
             cd = form.cleaned_data
             post_url = request.build_absolute_uri(post.get_absolute_url())
-            subject = (
-                f"{cd['name']} ({cd['email']}) recommends you read {post.title}"
-            )
+            subject = f"{cd['name']} {cd['email']} recommends you read {post.title}"
             message = (
                 f"Read {post.title} at {post_url}\n\n"
                 f"{cd['name']}'s comments: {cd['comments']}"

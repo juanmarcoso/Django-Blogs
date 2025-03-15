@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
+from taggit.managers import TaggableManager
 
 # Create your models here.
 # Aqui vamos a crear nuestras tablas
@@ -16,6 +17,7 @@ class Post(models.Model):
     class Status(models.TextChoices):
         DRAFT = 'DF', 'Draft'
         PUBLISHED = 'PB', 'Published'
+        
     title = models.CharField(max_length=250)
     slug = models.SlugField(max_length=250, unique_for_date='publish') # Va a hacer que sea unico por fecha
     author = models.ForeignKey(User, 
@@ -28,6 +30,7 @@ class Post(models.Model):
     status = models.CharField(max_length=2, # Solo dos opciones (borrado o publicado)
                               choices=Status.choices,
                               default=Status.DRAFT) # Por defecto definimos que va a estar en un estado de borrador
+    tags = TaggableManager()
     # Armando nuestros manahers dentro de la clase
     objects = models.Manager()
     published = PublishManager()
