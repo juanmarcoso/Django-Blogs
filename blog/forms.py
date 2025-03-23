@@ -12,4 +12,7 @@ class CommentForm(forms.ModelForm):
         model = Coment
         # Only the fields that we want to show
         fields = ['name', 'email', 'body']
+        
+class SearchForm(forms.Form):
+    query = forms.CharField()
     
