@@ -43,6 +43,11 @@ This is a Django project that implements a blog with features such as **post sea
   - README.md
   - manage.py
 
+## Install dependencies from requirements.txt
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Key Features
 
